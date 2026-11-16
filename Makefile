@@ -9,7 +9,7 @@ help: ## Affiche cette aide
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-8s %s\n", $$1, $$2}'
 
 up: ## Sert le site en local sur http://localhost:$(PORT)
-	docker run -d --rm --name yantech-www -p $(PORT):80 -v "$(CURDIR)":/usr/share/nginx/html:ro $(NGINX)
+	docker run -d --rm --name yantech-www -p 127.0.0.1:$(PORT):80 -v "$(CURDIR)":/usr/share/nginx/html:ro $(NGINX)
 
 down: ## Arrête le serveur local
 	docker stop yantech-www
