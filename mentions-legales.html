@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mentions légales · Yannick Gardiol</title>
 <link rel="stylesheet" href="assets/fonts.css">
+<script src="assets/stats.js" defer></script>
 <style>
 /* Layout : « Missions », même famille que l'atelier. Une interface d'outil soignée : panneaux, tableaux de runs, pastilles d'état. Même code couleur que le carnet (bleu = Yannick, vert = agents, orange = critiques, rouge = interdit / échec), même police tapée pour les données. */
 :root {
@@ -238,7 +239,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
           <div><dt>Éditeur</dt><dd><p>YANTECH, EURL au capital de 110 000 €.</p><p>Siège social : 229 rue Saint-Honoré, 75001 Paris.</p><p>RCS Paris 922 589 866. TVA intracommunautaire : FR31922589866.</p><p>Contact : <span class="mono">yannick.gardiol@yantech.fr</span></p></dd></div>
           <div><dt>Directeur de la publication</dt><dd>Yannick Gardiol, gérant.</dd></div>
           <div><dt>Hébergeur</dt><dd><p>GitHub, Inc. (service GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</p></dd></div>
-          <div><dt>Données personnelles</dt><dd><p>Ce site ne dépose aucun cookie et ne mesure pas l'audience. Les polices et les scripts sont hébergés avec le site : aucune ressource n'est chargée depuis un service tiers.</p><p>L'hébergeur conserve des journaux techniques, dont l'adresse IP des visiteurs, pour la sécurité du service.</p><p>Le bouton « Prendre 30 minutes » ouvre la page de prise de rendez-vous de Google Agenda. Les informations saisies y sont traitées par Google et par moi, uniquement pour organiser le rendez-vous.</p><p>Pour toute question ou demande sur vos données : <span class="mono">yannick.gardiol@yantech.fr</span>.</p></dd></div>
+          <div><dt>Données personnelles</dt><dd><p>Ce site ne dépose aucun cookie. Les polices et les scripts sont hébergés avec le site.</p><p>La fréquentation est mesurée avec Matomo, hébergé dans l'Union européenne, configuré sans cookie et avec une adresse IP anonymisée. Les statistiques servent uniquement à savoir quelles pages sont lues ; elles ne sont ni croisées ni partagées. Si votre navigateur envoie le signal « Do Not Track », vous n'êtes pas mesuré.</p><p id="optout-zone">Vous pouvez aussi refuser la mesure sur ce navigateur : <button type="button" id="optout" class="tag" style="cursor:pointer;border:0">ne plus être mesuré</button> <span id="optout-state"></span></p><p>L'hébergeur conserve des journaux techniques, dont l'adresse IP des visiteurs, pour la sécurité du service.</p><p>Le bouton « Prendre 30 minutes » ouvre la page de prise de rendez-vous de Google Agenda. Les informations saisies y sont traitées par Google et par moi, uniquement pour organiser le rendez-vous.</p><p>Pour toute question ou demande sur vos données : <span class="mono">yannick.gardiol@yantech.fr</span>.</p></dd></div>
           <div><dt>Propriété intellectuelle</dt><dd><p>Textes, schémas et photographie : YANTECH, tous droits réservés.</p><p>Polices Caveat, Geist et JetBrains Mono sous licence SIL Open Font License. Bibliothèque rough.js sous licence MIT.</p></dd></div>
         </dl>
       </div>
@@ -252,5 +253,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
     <small>YANTECH · <a href="mentions-legales.html">Mentions légales</a></small>
   </div>
 </footer>
+<script>
+(function () {
+  var b = document.getElementById('optout'), st = document.getElementById('optout-state');
+  function get() { try { return localStorage.getItem('yantech-sans-mesure') === '1'; } catch (e) { return false; } }
+  function render() { var off = get(); b.textContent = off ? 'réactiver la mesure' : 'ne plus être mesuré'; st.textContent = off ? 'Vous n\'êtes plus mesuré sur ce navigateur.' : 'Vous êtes actuellement mesuré, sans cookie.'; }
+  b.addEventListener('click', function () { try { if (get()) localStorage.removeItem('yantech-sans-mesure'); else localStorage.setItem('yantech-sans-mesure', '1'); } catch (e) {} render(); });
+  render();
+})();
+</script>
 </body>
 </html>
