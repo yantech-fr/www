@@ -7,3 +7,4 @@
 - Polices auto-hébergées : CSS récupérée depuis Google Fonts (sous-ensembles latin et latin-ext), 18 fichiers woff2 dans `assets/fonts/`. rough.js 4.6.6 copié depuis jsDelivr dans `assets/vendor/`.
 - Images épinglées par digest : nginx 1.27-alpine (aperçu local, port 8417), Trivy 0.76.2 (audit).
 - Actions GitHub épinglées par SHA : checkout v7.0.1, configure-pages v6.0.0, upload-pages-artifact v5.0.0, deploy-pages v5.0.1.
+- Mesure d'audience Matomo Cloud (instance existante, site n° 5) : traceur classique auto-hébergé (`assets/vendor/matomo.js`), `disableCookies`, `setDoNotTrack`, refus par le visiteur stocké dans son navigateur. Pas de conteneur Tag Manager : la configuration reste dans le code. Mentions légales mises à jour.

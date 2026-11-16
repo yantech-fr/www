@@ -8,7 +8,7 @@
   _paq.push(['enableLinkTracking']);
   var u = 'https://scratchanalyse.matomo.cloud/';
   _paq.push(['setTrackerUrl', u + 'matomo.php']);
-  _paq.push(['setSiteId', '__MATOMO_SITE_ID__']);
+  _paq.push(['setSiteId', '5']);
   var g = document.createElement('script');
   g.async = true; g.src = 'assets/vendor/matomo.js';
   document.head.appendChild(g);

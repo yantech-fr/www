@@ -2,7 +2,9 @@
 
 Le site de Yannick Gardiol, architecte et développeur IA : https://www.yantech.fr
 
-Trois pages statiques : le carnet (`index.html`), l'atelier et les missions, plus les mentions légales. Polices et scripts sont hébergés dans `assets/`, aucune ressource n'est chargée depuis un service tiers.
+Trois pages statiques : le carnet (`index.html`), l'atelier et les missions, plus les mentions légales. Polices et scripts sont hébergés dans `assets/`.
+
+Mesure d'audience : Matomo Cloud (site n° 5), traceur classique dans `assets/stats.js`, sans cookie, « Do Not Track » respecté, refus possible depuis les mentions légales. Seules les visites partent vers Matomo.
 
 ## Travailler en local
 
