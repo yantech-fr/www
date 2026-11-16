@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>L'atelier · Yannick Gardiol</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+/* Layout : « L'atelier », l'envers du carnet. Une interface d'outil soignée : panneaux, tableaux de runs, pastilles d'état. Même code couleur que le carnet (bleu = Yannick, vert = agents, orange = critiques, rouge = interdit / échec), même police tapée pour les données. */
+:root {
+  --bg: #F5F6F8; --surface: #FFFFFF; --sunk: #EEF0F3; --fg: #0F1218; --muted: #5E6573; --line: #E1E4E9;
+  --me: #1F4FD1; --agent: #2B8A3E; --critic: #D9480F; --red: #C92A2A; --on: #FFFFFF;
+  --sans: "Geist", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius: 10px;
+  color-scheme: light;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0D11; --surface: #12151B; --sunk: #181C23; --fg: #E8EBF0; --muted: #959DAB; --line: #232833;
+    --me: #7C9BFF; --agent: #5CC07A; --critic: #FF8A4C; --red: #FF6B6B; --on: #0B0D11; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B0D11; --surface: #12151B; --sunk: #181C23; --fg: #E8EBF0; --muted: #959DAB; --line: #232833;
+  --me: #7C9BFF; --agent: #5CC07A; --critic: #FF8A4C; --red: #FF6B6B; --on: #0B0D11; color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: calc(76px + env(safe-area-inset-top, 0px)); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+p, h1, h2, h3, ul, ol, dl, dd { margin: 0; }
+a { color: var(--me); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--me); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.mono { font-family: var(--mono); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Barre du haut, partagée avec le carnet */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--bg) 85%, transparent); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 12px 24px; min-height: 60px; flex-wrap: wrap; }
+.brand { font-family: var(--mono); font-weight: 700; color: var(--fg); text-decoration: none; letter-spacing: -.02em; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--sunk); border-radius: 999px; }
+.tabs a, .tabs span { font-size: .88rem; font-weight: 500; padding: 5px 14px; border-radius: 999px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.tabs a:hover { color: var(--fg); }
+.tabs [aria-current="page"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / .08), 0 0 0 1px var(--line); }
+.tabs .soon { opacity: .55; cursor: default; }
+.top .spacer { flex: 1; }
+.cta { font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 8px; background: var(--fg); color: var(--bg); text-decoration: none; white-space: nowrap; }
+
+/* En-tête de page */
+.hero .wrap { padding-block: 56px 40px; display: grid; gap: 20px; }
+.eyebrow { font-family: var(--mono); font-size: .78rem; color: var(--muted); letter-spacing: .02em; }
+.hero h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); line-height: 1.02; letter-spacing: -.045em; font-weight: 700; max-width: 16ch; text-wrap: balance; }
+.hero h1 .m { color: var(--me); font-family: "Caveat", cursive; font-weight: 700; font-size: 1.12em; letter-spacing: 0; } .hero h1 .a { color: var(--agent); }
+.hero p { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+
+/* Sections et panneaux */
+.sec .wrap { padding-block: 40px; display: grid; gap: 20px; }
+.sec-head { display: flex; justify-content: space-between; align-items: end; gap: 8px 24px; flex-wrap: wrap; }
+.sec-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.03em; line-height: 1.15; font-weight: 650; }
+.sec-head p { color: var(--muted); max-width: 62ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 1px 2px rgb(0 0 0 / .04); overflow: hidden; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: .72rem; font-weight: 500; padding: 2px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid currentColor; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.ok { color: var(--agent); } .pill.fail { color: var(--red); } .pill.me { color: var(--me); } .pill.idle { color: var(--muted); } .pill.crit { color: var(--critic); }
+
+/* L'équipe : orchestrateur + agents */
+.org { padding: 20px; display: grid; gap: 0; }
+.lead { border: 1.5px solid var(--me); background: color-mix(in srgb, var(--me) 7%, var(--surface)); border-radius: 10px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 8px 20px; flex-wrap: wrap; }
+.lead b { font-size: 1.15rem; letter-spacing: -.02em; }
+.lead .rights { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-family: var(--mono); font-size: .72rem; padding: 3px 8px; border-radius: 6px; background: var(--sunk); color: var(--fg); white-space: nowrap; }
+.tag.me { background: var(--me); color: var(--on); }
+.bus { height: 28px; margin-inline: 10%; border: 1.5px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; position: relative; }
+.bus::before { content: ""; position: absolute; left: 50%; top: -1px; width: 1.5px; height: 14px; background: var(--line); }
+.agents { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding-top: 14px; }
+.agent { border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 8px; align-content: start; position: relative; background: var(--surface); min-width: 0; }
+.agent::before { content: ""; position: absolute; left: 50%; top: -15px; width: 1.5px; height: 14px; background: var(--line); }
+.agent h3 { font-size: .98rem; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.agent h3 .dot { background: var(--agent); }
+.agent p { font-size: .85rem; color: var(--muted); line-height: 1.5; }
+.never { font-family: var(--mono); font-size: .72rem; color: var(--red); background: color-mix(in srgb, var(--red) 9%, transparent); border-radius: 6px; padding: 6px 8px; line-height: 1.45; }
+.never::before { content: "jamais · "; font-weight: 700; }
+
+/* Runs */
+.runs { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.runs-wrap { overflow-x: auto; }
+.runs th { font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--muted); text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--sunk); }
+.runs td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.runs tr:last-child td { border-bottom: 0; }
+.runs td.date { font-family: var(--mono); font-size: .8rem; color: var(--muted); white-space: nowrap; }
+.runs td.what b { display: block; font-weight: 600; letter-spacing: -.01em; }
+.runs td.what span { color: var(--muted); font-size: .86rem; }
+.runs td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .85rem; }
+.runs tr.failed td.what b { color: var(--red); }
+.runs tr.partial td.what b { color: var(--critic); }
+.runs td.what span.lesson { color: var(--muted); }
+.runs tr.failed td.what span.lesson { color: var(--red); }
+.runs tr.partial td.what span.lesson { color: var(--critic); }
+.lesson { display: block; margin-top: 4px; font-family: var(--mono); font-size: .76rem; color: var(--red); }
+.runs .agents-bar { display: flex; gap: 2px; margin-top: 6px; flex-wrap: wrap; max-width: 220px; }
+.runs .agents-bar i { width: 6px; height: 10px; border-radius: 2px; background: var(--agent); opacity: .85; }
+.runs tr.failed .agents-bar i { background: var(--red); }
+.runs .agents-bar i.c { background: var(--critic); }
+
+/* Garde-fous */
+.policies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+.policy { padding: 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.policy:nth-child(3n) { border-right: 0; }
+.policy:nth-last-child(-n+3) { border-bottom: 0; }
+.policy code { font-family: var(--mono); font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
+.policy b { font-size: .98rem; letter-spacing: -.01em; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.policy p { font-size: .86rem; color: var(--muted); line-height: 1.5; }
+
+/* Terrains d'essai */
+.products { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.product { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 12px; align-content: start; min-width: 0; position: relative; overflow: hidden; }
+.product::after { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--accent, var(--line)); }
+.product .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.product h3 { font-size: 1.3rem; letter-spacing: -.03em; }
+.product p { color: var(--muted); font-size: .92rem; line-height: 1.55; }
+.kpi { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--line); }
+.kpi b { font-family: var(--mono); font-size: 1.9rem; letter-spacing: -.04em; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: .86rem; }
+.todo { background: color-mix(in srgb, #F2C94C 35%, transparent); padding: 0 4px; border-radius: 3px; }
+
+/* Pied */
+.back .wrap { padding-block: 48px 64px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); }
+.back a.carnet { font-weight: 600; text-decoration: none; }
+.back small { color: var(--muted); }
+
+
+/* Index des savoir-faire dans l'accroche */
+.index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 8px; }
+.index a { display: grid; gap: 2px; padding: 16px 18px; text-decoration: none; color: var(--fg); border-right: 1px solid var(--line); min-width: 0; }
+.index a:last-child { border-right: 0; }
+.index a:hover { background: color-mix(in srgb, var(--me) 5%, var(--surface)); }
+.index .k { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+.index b { font-family: var(--mono); font-size: 1.5rem; letter-spacing: -.04em; line-height: 1.2; color: var(--agent); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.index b.crit { color: var(--critic); } .index b.me { color: var(--me); }
+.index span { font-size: .84rem; color: var(--muted); line-height: 1.4; }
+@media (max-width: 900px) { .index { grid-template-columns: repeat(2, minmax(0, 1fr)); } .index a { border-bottom: 1px solid var(--line); } .index a:nth-child(2n) { border-right: 0; } .index a:last-child { grid-column: 1 / -1; border-bottom: 0; } }
+
+/* Ce que je fais avec mes agents : savoir-faire et preuves */
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.skill { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.skill.wide { grid-column: 1 / -1; }
+.skill-head { display: grid; gap: 6px; }
+.skill-head .k { font-family: var(--mono); font-size: .72rem; color: var(--muted); letter-spacing: .02em; }
+.skill h3 { font-size: 1.35rem; letter-spacing: -.03em; line-height: 1.2; }
+.skill h3 i { font-style: normal; color: var(--me); }
+.skill-head p { color: var(--muted); font-size: .95rem; line-height: 1.55; }
+.proofs { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.proof { display: grid; grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr); gap: 4px 16px; padding-top: 12px; align-items: baseline; }
+.proof + .proof { border-top: 1px dashed var(--line); margin-top: 12px; }
+.proof b { font-family: var(--mono); font-size: 1.45rem; letter-spacing: -.04em; line-height: 1.15; color: var(--agent); font-variant-numeric: tabular-nums; }
+.proof.crit b { color: var(--critic); } .proof.fail b { color: var(--red); } .proof.me b { color: var(--me); }
+.proof span { font-size: .92rem; line-height: 1.5; }
+.proof small { grid-column: 2; font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.skills.fails .skill { border-color: color-mix(in srgb, var(--red) 30%, var(--line)); }
+details.log { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+details.log > summary { cursor: pointer; padding: 14px 16px; font-family: var(--mono); font-size: .8rem; color: var(--muted); list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+details.log > summary::-webkit-details-marker { display: none; }
+details.log > summary::after { content: "ouvrir ↓"; color: var(--me); }
+details.log[open] > summary::after { content: "fermer ↑"; }
+details.log[open] > summary { border-bottom: 1px solid var(--line); }
+@media (max-width: 900px) { .skills { grid-template-columns: 1fr; } .proof { grid-template-columns: 1fr; } .proof small { grid-column: 1; } }
+
+/* Le dernier chantier : la trace de ce site */
+.wf { display: grid; padding-block: 6px; }
+.wf-row { display: grid; grid-template-columns: 4rem minmax(0, 17rem) minmax(0, 1fr); gap: 12px; align-items: center; padding: 5px 16px; border: 0; background: none; color: var(--fg); font: inherit; font-size: .88rem; text-align: left; cursor: pointer; width: 100%; }
+.wf-row:hover { background: color-mix(in srgb, var(--me) 6%, transparent); }
+.wf-row[aria-pressed="true"] { background: color-mix(in srgb, var(--me) 11%, transparent); }
+.wf-row .t { font-family: var(--mono); font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.wf-row .n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wf-track { position: relative; height: 14px; }
+.wf-track::before { content: ""; position: absolute; inset: 6px 0 auto; height: 1px; background: var(--line); }
+.wf-gap { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, transparent 0 4px, var(--line) 4px 5px); }
+.wf-bar { position: absolute; top: 1px; height: 12px; border-radius: 3px; min-width: 6px; }
+.wf-axis { display: grid; grid-template-columns: 4rem minmax(0, 17rem) minmax(0, 1fr); gap: 12px; padding: 2px 16px 12px; }
+.wf-ticks { position: relative; height: 1.2em; font-family: var(--mono); font-size: .66rem; color: var(--muted); }
+.wf-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.wf-detail { border-top: 1px solid var(--line); padding: 16px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 12px 28px; min-height: 8.5rem; }
+.wf-detail h3 { font-size: 1rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.wf-detail p { color: var(--muted); font-size: .9rem; margin-top: 4px; }
+.wf-detail dl { font-size: .82rem; display: grid; }
+.wf-detail dl div { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 10px; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+.wf-detail dt { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+@media (max-width: 760px) {
+  .wf-row { grid-template-columns: 3.6rem minmax(0, 1fr); row-gap: 3px; }
+  .wf-row .wf-track { grid-column: 1 / -1; }
+  .wf-axis { grid-template-columns: 1fr; } .wf-axis > span { display: none; }
+  .wf-detail { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .agents { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .agent::before, .bus { display: none; }
+  .agents { padding-top: 12px; }
+  .policies { grid-template-columns: 1fr; }
+  .policy { border-right: 0; border-bottom: 1px solid var(--line) !important; }
+  .policy:last-child { border-bottom: 0 !important; }
+  .products { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .runs thead { display: none; }
+  .runs, .runs tbody { display: block; }
+  .runs tr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .runs tr:last-child { border-bottom: 0; }
+  .runs td { padding: 0; border: 0; }
+  .runs td.what { grid-column: 1 / -1; grid-row: 2; }
+  .runs td.date { grid-column: 1; grid-row: 1; }
+  .runs td:last-child { grid-column: 3; grid-row: 1; }
+  .runs td.n { grid-column: 1 / -1; white-space: normal; min-width: 0 !important; }
+  .runs td.n::before { content: attr(data-label) " · "; color: var(--muted); }
+}
+@media (max-width: 520px) {
+  .agents { grid-template-columns: 1fr; }
+  .tabs a, .tabs span { padding: 5px 10px; }
+  .top .spacer { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./">yantech</a>
+    <nav class="tabs" aria-label="Pages">
+      <a href="./">Le carnet</a>
+      <a href="atelier.html" aria-current="page">L'atelier</a>
+      <a href="missions.html">Missions</a>
+    </nav>
+    <span class="spacer"></span>
+    <a class="cta" href="https://calendar.app.google/P8K4nFzCN2Go4vd29" target="_blank" rel="noopener noreferrer">Prendre 30 minutes</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">// l'atelier</span>
+      <h1>Je pense <span class="m">à la main</span>. Je produis <span class="a">avec mes agents</span>.</h1>
+      <p>Le carnet montre qui je suis. Ici, ce que je sais faire avec mon équipe d'agents : cinq savoir-faire, chacun prouvé sur un vrai chantier en 2026.</p>
+      <nav class="index" aria-label="Les cinq savoir-faire">
+        <a href="#construire"><span class="k">01 · construire</span><b>0 conflit</b><span>sur 95 commits fusionnés</span></a>
+        <a href="#verifier"><span class="k">02 · vérifier</span><b class="crit">57 000</b><span>personnes de trop, attrapées</span></a>
+        <a href="#auditer"><span class="k">03 · auditer</span><b class="crit">303</b><span>constats en 32 minutes</span></a>
+        <a href="#traiter"><span class="k">04 · traiter</span><b>0,48 $</b><span>pour 748 retours clients</span></a>
+        <a href="#decider"><span class="k">05 · décider</span><b class="me">je tranche</b><span>les agents proposent</span></a>
+      </nav>
+      <div class="legend" aria-label="Code couleur">
+        <span><i class="dot" style="background:var(--me)"></i>moi</span>
+        <span><i class="dot" style="background:var(--agent)"></i>mes agents</span>
+        <span><i class="dot" style="background:var(--critic)"></i>agents critiques</span>
+        <span><i class="dot" style="background:var(--red)"></i>interdit ou échec</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="runs">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Ce que je fais avec mes agents</h2>
+        <p>Cinq savoir-faire, chacun prouvé sur un vrai chantier entre mars et novembre 2026. Et ce que mes échecs m'ont appris.</p>
+      </div>
+      <div class="skills">
+        <article class="skill" id="construire">
+          <div class="skill-head"><span class="k">01 · construire</span><h3>Faire travailler plusieurs agents <i>en parallèle</i>, sans casser le code.</h3><p>Je découpe le travail en lots, un agent par lot, chacun dans sa copie du code. Je garde l'ensemble cohérent.</p></div>
+          <div class="proofs">
+            <div class="proof"><b>0 conflit</b><span>sur 95 commits fusionnés, et 176 tests de plus.</span><small>8 agents · 27 oct.</small></div>
+            <div class="proof"><b>en prod</b><span>une fonctionnalité livrée par une chaîne d'agents : PO, lead, deux devs, QA, revue. Aucune erreur bloquante.</span><small>6 agents · 22 août</small></div>
+          </div>
+        </article>
+        <article class="skill" id="verifier">
+          <div class="skill-head"><span class="k">02 · vérifier</span><h3>Ne jamais croire l'IA <i>sur parole</i>.</h3><p>Des agents dont le seul rôle est de chercher l'erreur des autres, et des sceptiques pour vérifier leurs critiques.</p></div>
+          <div class="proofs">
+            <div class="proof crit"><b>57 000</b><span>personnes de trop dans un solde migratoire, attrapées avant publication.</span><small>41 agents · 31 oct.</small></div>
+            <div class="proof crit"><b>14 min</b><span>pour trouver une régression bloquante dans du code dont tous les tests passaient.</span><small>10 agents · 6 nov.</small></div>
+          </div>
+        </article>
+        <article class="skill" id="auditer">
+          <div class="skill-head"><span class="k">03 · auditer</span><h3>Passer un produit <i>au crible</i> en une demi-heure.</h3><p>Une revue complète, technique et produit, avec vérification adversariale de chaque constat.</p></div>
+          <div class="proofs">
+            <div class="proof crit"><b>303</b><span>constats sur mon SaaS, dont 111 majeurs, en 32 minutes.</span><small>27 agents · 8 juil.</small></div>
+            <div class="proof crit"><b>20</b><span>fausses alertes écartées par des sceptiques sur mon jeu éducatif, et un vrai problème de données trouvé.</span><small>53 agents · 22 oct.</small></div>
+          </div>
+        </article>
+        <article class="skill" id="traiter">
+          <div class="skill-head"><span class="k">04 · traiter</span><h3>Traiter de gros volumes <i>pour presque rien</i>.</h3><p>Choisir la bonne méthode, la mesurer, et en connaître le coût exact.</p></div>
+          <div class="proofs">
+            <div class="proof"><b>0,48 $</b><span>pour classer 748 retours clients en 2 min 45, sans en perdre un seul.</span><small>12 juil.</small></div>
+            <div class="proof"><b>≈ 60 $</b><span>pour transformer 507 vidéos en 54 fiches.</span><small>pipeline en 3 passes · mars</small></div>
+            <div class="proof"><b>3,90 $</b><span>pour 3 548 décisions d'agents dans un monde simulé.</span><small>Emergence · 27 oct.</small></div>
+          </div>
+        </article>
+        <article class="skill wide" id="decider">
+          <div class="skill-head"><span class="k">05 · décider</span><h3>Les agents proposent, <i>je tranche</i>.</h3><p>Un comité de direction d'agents débat de la stratégie de mon SaaS, un arbitre conclut. La décision finale reste la mienne.</p></div>
+          <div class="proofs">
+            <div class="proof me"><b>2 décisions</b><span>amendées par moi sur le bilan du trimestre. Le comité avait failli trancher sur une base de connaissance périmée : depuis, un contrôle automatique la tient à jour.</span><small>12 agents · 26 juil.</small></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="sec-head" style="margin-top:12px"><h2 style="font-size:1.4rem">Ce que mes échecs m'ont appris</h2></div>
+      <div class="skills fails">
+        <article class="skill"><div class="proofs" style="border-top:0"><div class="proof fail"><b>0 gain</b><span>pour un skill que je croyais utile : +8 % de durée, +800 tokens. Mesuré, puis supprimé.</span><small>leçon : mesurer avant de garder · 14 mai</small></div></div></article>
+        <article class="skill"><div class="proofs" style="border-top:0"><div class="proof fail"><b>8 h</b><span>de travail de deux agents perdues : la machine s'arrête, rien n'était enregistré.</span><small>leçon : commit tôt, commit souvent · 24 oct.</small></div></div></article>
+        <article class="skill wide"><div class="proofs" style="border-top:0"><div class="proof fail"><b>4 pannes</b><span>silencieuses en trois mois et demi pour mon assistant tournant 24 h sur 24.</span><small>leçon : un agent autonome a besoin qu'on surveille sa santé · août à oct.</small></div></div></article>
+      </div>
+
+      <details class="log">
+        <summary><span>le journal complet · 12 runs, mars à novembre 2026</span></summary>
+        <div class="runs-wrap">
+          <table class="runs">
+            <thead><tr><th>date</th><th>run</th><th>agents</th><th>durée</th><th>résultat</th><th>statut</th></tr></thead>
+            <tbody id="runs-body"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="sec" id="equipe">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>L'équipe</h2>
+        <p>Je travaille seul. Mes agents ne remplacent personne : ils prennent la part répétitive. Chacun a un rôle, et une chose qu'il ne fait jamais.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>équipe · 1 humain, 5 rôles d'agents</span><span>les droits, rôle par rôle</span></div>
+        <div class="org">
+          <div class="lead">
+            <div><b>Moi</b><div style="color:var(--muted);font-size:.9rem">Je décide, je valide tout ce qui est irréversible.</div></div>
+            <div class="rights"><span class="tag me">décide</span><span class="tag me">valide la prod</span><span class="tag me">valide les messages</span><span class="tag me">valide le DNS</span></div>
+          </div>
+          <div class="bus" aria-hidden="true"></div>
+          <div class="agents">
+            <article class="agent"><h3><i class="dot"></i>Développeurs</h3><p>Plusieurs en parallèle, un lot chacun, dans sa propre copie du code.</p><span class="never">toucher au lot d'un autre</span></article>
+            <article class="agent"><h3><i class="dot"></i>Relecteurs</h3><p>Cherchent l'erreur dans le travail des autres. Des sceptiques vérifient leurs critiques.</p><span class="never">relire leur propre travail</span></article>
+            <article class="agent"><h3><i class="dot"></i>Vérificateurs</h3><p>Confrontent chaque chiffre publié à sa source officielle.</p><span class="never">laisser passer un chiffre sans source</span></article>
+            <article class="agent"><h3><i class="dot"></i>Veilleur de prod</h3><p>Erreurs et logs, 5, 25 et 60 minutes après chaque mise en production.</p><span class="never">toucher à la prod sans mon accord</span></article>
+            <article class="agent"><h3><i class="dot"></i>Assistant du matin</h3><p>Briefing à 7 h, veille IA, résumé des mails.</p><span class="never">ouvrir un lien sans mon accord</span></article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <section class="sec" id="chantier">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Le dernier chantier : ce site</h2>
+        <p>Le 15 novembre 2026, en une journée. Chaque ligne est une étape réelle, relevée sur les commits et les retours des agents. Cliquez pour l'ouvrir.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>trace · yantech.fr · <span id="nsteps"></span> étapes</span><span class="legend"><span><i class="dot" style="background:var(--me)"></i>moi</span><span><i class="dot" style="background:var(--agent)"></i>agent</span><span><i class="dot" style="background:var(--critic)"></i>critique</span></span></div>
+        <div class="wf" id="wf" role="group" aria-label="Étapes de fabrication du site"></div>
+        <div class="wf-axis" aria-hidden="true"><span></span><span></span><div class="wf-ticks" id="wf-ticks"></div></div>
+        <div class="wf-detail" id="wf-detail" aria-live="polite"></div>
+      </div>
+      <p style="color:var(--muted);font-size:.82rem">Les débuts marqués « ≈ » sont estimés. L'échelle est coupée pendant la pause de l'après-midi.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="garde-fous">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Les garde-fous</h2>
+        <p>Les règles que mes agents appliquent, sur mes projets comme en mission.</p>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>politique · 6 règles</span><span>appliquées</span></div>
+        <div class="policies">
+          <div class="policy"><code>secrets.trousseau_seulement</code><b>Aucun secret en clair <span class="pill ok">actif</span></b><p>Mots de passe et clés dans le trousseau du système, jamais dans un fichier.</p></div>
+          <div class="policy"><code>prod.lecture_seule</code><b>La prod en lecture seule <span class="pill ok">actif</span></b><p>Les agents qui analysent un produit en ligne lisent, ils n'écrivent pas.</p></div>
+          <div class="policy"><code>irreversible.validation_humaine</code><b>L'irréversible passe par moi <span class="pill ok">actif</span></b><p>Mise en production, argent, message à un tiers, DNS : rien ne part sans mon accord.</p></div>
+          <div class="policy"><code>client.isolation</code><b>Un client, un environnement <span class="pill ok">actif</span></b><p>Comptes et accès séparés par client, une copie du code par agent.</p></div>
+          <div class="policy"><code>web.accord_prealable</code><b>Méfiance envers le web <span class="pill ok">actif</span></b><p>Mon assistant ne voit pas les liens qu'il lit et me demande avant d'ouvrir une page.</p></div>
+          <div class="policy"><code>mission.cadre_client</code><b>Un environnement cloisonné <span class="pill ok">actif</span></b><p>En mission, l'IA tourne dans le cadre fixé par le client, isolée du reste.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="essais">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>Les terrains d'essai</h2>
+        <p>Des projets personnels, chacun né d'une question. C'est là que j'essaie mes méthodes avant de les proposer.</p>
+      </div>
+      <div class="products">
+        <article class="product" style="--accent:var(--me)">
+          <div class="row"><h3>Emergence</h3><span class="pill me">sur invitation, bientôt</span></div>
+          <p>Trois habitants pilotés par une IA doivent survivre seuls dans un monde simulé : faim, froid, hiver. Aucune recette, aucun outil donné.</p>
+          <div class="kpi"><b>3 548</b><span>décisions d'agents pour 3,90 $. Pierre taillée, liens tressés, peaux portées. Le feu, jamais.</span></div>
+        </article>
+        <article class="product" style="--accent:var(--agent)">
+          <div class="row"><h3>budget-france</h3><span class="pill idle">prototype</span></div>
+          <p>Comprendre les données publiques de la France : d'où vient l'argent public, où il va. Chaque chiffre renvoie à sa source officielle.</p>
+          <div class="kpi"><b>31</b><span>affirmations publiques vérifiées mot pour mot, sur 41 jeux de données.</span></div>
+        </article>
+        <article class="product" style="--accent:var(--critic)">
+          <div class="row"><h3>Le village</h3><span class="pill idle">prototype</span></div>
+          <p>Un village sur tablette où les enfants de 6 à 11 ans entrent dans des maisons qui sont des jeux de maths, bientôt de français. Aucun échange libre entre l'IA et l'enfant.</p>
+          <div class="kpi"><b>7</b><span>jeux. L'erreur ne coûte rien : un indice, puis un nouvel essai.</span></div>
+        </article>
+        <article class="product" style="--accent:var(--fg)">
+          <div class="row"><h3>Scratch</h3><span class="pill ok">en production</span></div>
+          <p>Une application pour les agences immobilières, en production.</p>
+          <div class="kpi"><span>Il me donne un retour terrain : on aide les agences grâce à lui, et j'y éprouve mes méthodes en conditions réelles.</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="back">
+  <div class="wrap">
+    <a class="carnet" href="./">← Retour au carnet</a>
+    <small>YANTECH · <a href="mentions-legales.html">Mentions légales</a></small>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var runs = [
+    { date: '29-31 mars', what: '507 vidéos, 54 fiches', sub: 'Un pipeline en trois passes : transcription, synthèse, fiches.', agents: 1, dur: '3 jours', res: '507 vidéos, 325 transcriptions, 54 fiches · ≈ 60 $', st: 'ok' },
+    { date: '14 mai', what: 'Un skill mesuré, puis supprimé', sub: 'Deux sous-agents comparent cinq cas, avec et sans le skill.', agents: 10, crit: true, dur: '?', res: '+800 tokens · +8 % de durée · aucun gain', st: 'fail', lesson: 'leçon : un skill se mesure avant d\'être gardé' },
+    { date: '8 juil.', what: "L'audit de Scratch", sub: 'Revue complète de mon SaaS, avec vérification adversariale.', agents: 27, crit: true, dur: '≈ 32 min', res: '303 constats, dont 111 majeurs · ≈ 2,3 M tokens', st: 'ok' },
+    { date: '12 juil.', what: '748 verbatims, deux méthodes', sub: 'Classer des retours clients : directement, ou via une taxonomie.', agents: null, dur: '2 min 45', res: 'directe : 12 thèmes, tout couvert, 0,48 $ · taxonomie : 342 à 467 verbatims perdus', st: 'ok', lesson: 'leçon : le modèle lâche des lots sans prévenir' },
+    { date: '26 juil.', what: 'Un CODIR qui se trompe de base', sub: 'Un comité de direction d\'agents fait le bilan du trimestre.', agents: 12, dur: '?', res: '2 décisions amendées par moi', st: 'partial', lesson: 'leçon : des agents ne valent que leur source' },
+    { date: 'août → oct.', what: "L'agent qui tombait en silence", sub: 'Mon assistant tournant 24 h sur 24.', agents: 1, dur: '3,5 mois', res: '4 pannes silencieuses', st: 'fail', lesson: 'leçon : surveiller la santé de l\'agent' },
+    { date: '22 août', what: '6 agents livrent une feature', sub: 'Une chaîne PO, lead, deux devs, QA, revue, sur Scratch.', agents: 6, dur: '?', res: 'en production · 0 erreur bloquante', st: 'ok' },
+    { date: '22 oct.', what: '53 agents relisent un jeu', sub: 'Revue de mon jeu éducatif, avec des sceptiques.', agents: 53, crit: true, dur: '≈ 5 min', res: '20 faux problèmes écartés · 1 vrai problème de données · ≈ 3 M tokens', st: 'ok' },
+    { date: '24 oct.', what: 'Huit heures perdues', sub: 'La machine s\'arrête, rien n\'était enregistré.', agents: 2, dur: '≈ 8 h', res: '0 commit', st: 'fail', lesson: 'leçon : commit tôt, commit souvent' },
+    { date: '27 oct.', what: 'Huit agents, zéro conflit', sub: 'Une refonte découpée en 8 lots, un agent par lot.', agents: 8, dur: '1 journée', res: '95 commits · 0 conflit · +176 tests', st: 'ok' },
+    { date: '31 oct.', what: 'Le chiffre faux attrapé', sub: 'Relecture adversariale d\'un site de données publiques.', agents: 41, crit: true, dur: '≈ 1 h 30', res: '31 critiques confirmées sur 37 · 2,6 M tokens', st: 'ok' },
+    { date: '6 nov.', what: 'Tests verts, comportement faux', sub: 'Revue contradictoire sur une mission.', agents: 10, crit: true, dur: '14 min', res: '1 régression bloquante trouvée', st: 'ok' }
+  ];
+  var body = document.getElementById('runs-body');
+  runs.forEach(function (r) {
+    var tr = document.createElement('tr');
+    if (r.st === 'fail') tr.className = 'failed';
+    if (r.st === 'partial') tr.className = 'partial';
+    var bars = '';
+    for (var i = 0; i < (r.agents || 0); i++) bars += '<i' + (r.crit ? ' class="c"' : '') + '></i>';
+    tr.innerHTML = '<td class="date">' + r.date + '</td>' +
+      '<td class="what"><b>' + r.what + '</b><span>' + r.sub + '</span>' + (r.lesson ? '<span class="lesson">' + r.lesson + '</span>' : '') + '</td>' +
+      '<td class="n" data-label="agents">' + (r.agents === null ? '?' : r.agents) + '<div class="agents-bar" aria-hidden="true">' + bars + '</div></td>' +
+      '<td class="n" data-label="durée">' + r.dur + '</td>' +
+      '<td class="n" data-label="résultat" style="white-space:normal;min-width:12rem">' + r.res + '</td>' +
+      '<td><span class="pill ' + (r.st === 'ok' ? 'ok">réussi' : r.st === 'partial' ? 'crit">à moitié' : 'fail">échec') + '</span></td>';
+    body.appendChild(tr);
+  });
+
+  /* ---------- La trace du chantier ---------- */
+  function m(h, mn) { return h * 60 + mn; }
+  function hh(t) { var h = Math.floor(t / 60), mn = t % 60; return h + ':' + (mn < 10 ? '0' : '') + mn; }
+  var A0 = m(12, 15), A1 = m(14, 0), B0 = m(18, 0), B1 = m(20, 30);
+  function X(t) { return t <= A1 ? (t - A0) / (A1 - A0) * 34 : 40 + (t - B0) / (B1 - B0) * 60; }
+  var steps = [
+    ['me', 'je décide : une page, trois angles', m(12, 22), 0, 0, "Un site vitrine sur une seule page.", [['qui', 'moi']]],
+    ['agent', 'maquette v1', m(12, 23), m(12, 32), 1, 'Trois directions visuelles sur la même structure.', []],
+    ['me', '« jolie, mais trop conventionnelle »', m(12, 33), 0, 0, 'Trois palettes sur le même gabarit, ça reste du déjà-vu.', []],
+    ['agent', 'maquette v2, trois concepts', m(12, 40), m(13, 52), 1, "Une trace d'agent, une page de statut, un profil de course.", []],
+    ['critic', '6 critiques en parallèle', m(18, 4), m(18, 11), 1, "RH d'ESN, CTO, DSI, directeur artistique, gérante de PME, dev senior. Chacun joue un lecteur.", [['droits', 'lecture seule'], ['trouvé', 'un faux chiffre de démo, une note interne visible']]],
+    ['agent', 'synthèse des critiques', m(18, 11), 0, 0, 'Classements, défauts, questions à me poser.', []],
+    ['me', 'je tranche : une vitrine', m(18, 17), 0, 0, "Le site montre qui je suis et ce que j'aime. Pas de tarif affiché.", []],
+    ['agent', 'relit un mois de sessions', m(18, 18), m(18, 24), 1, "Environ 990 sessions relues pour décrire mon équipe d'agents.", [['droits', 'lecture seule'], ['consigne', 'aucun secret, aucun nom de client']]],
+    ['agent', 'maquette v3', m(18, 25), m(18, 31), 1, 'Une page complète, avec des faits réels seulement.', []],
+    ['critic', '6 critiques de direction et RH', m(18, 32), m(18, 36), 1, "DG, DRH, recrutement, direction d'agence, DSI, innovation.", [['droits', 'lecture seule']]],
+    ['agent', 'fouille LinkedIn, notes et Drive', m(18, 37), m(18, 41), 1, "Remonte des faits que j'avais oubliés, une note périmée sur une mission, et un jeton d'accès oublié en clair.", [['effet', 'jeton supprimé avec mon accord']]],
+    ['agent', 'maquette v4, photo, LinkedIn', m(18, 45), m(18, 58), 1, 'Missions d\'abord, coulisses ensuite.', []],
+    ['agent', 'passe de design', m(19, 22), m(19, 30), 1, 'Bandes, chiffres en grand.', []],
+    ['me', '« toujours le même look »', m(19, 31), 0, 1, 'Changer couleurs et polices ne suffit pas.', []],
+    ['agent', 'trois looks radicaux', m(19, 31), m(19, 36), 1, 'La main, le plan en cyanotype, le registre.', []],
+    ['me', 'je choisis « la main »', m(19, 38), 0, 1, 'Avec des schémas façon Excalidraw.', []],
+    ['agent', 'carnet manuscrit, v6', m(19, 40), m(19, 43), 1, 'Texte tapé par les agents, corrigé à la main.', []],
+    ['me', '« le texte doit tomber sur les lignes »', m(19, 44), 0, 1, '', []],
+    ['agent', 'grille de 32 px, menu collant', m(19, 44), m(19, 49), 1, 'Vérifié par script : chaque bloc de texte tombe sur une ligne.', []],
+    ['me', '« trop à la main, ça pèse »', m(19, 50), 0, 1, '', []],
+    ['agent', 'carnet allégé', m(19, 50), m(19, 55), 1, 'Le manuscrit réservé à mes annotations.', []],
+    ['me', 'trois pages : carnet + atelier', m(19, 56), 0, 1, 'La page 1 à la main, les autres en design moderne.', []],
+    ['agent', "prototype de l'atelier", m(19, 57), m(20, 2), 1, '', []],
+    ['me', "« j'aime beaucoup l'atelier »", m(20, 5), 0, 1, '', []],
+    ['agent', 'carnet, atelier, missions', m(20, 5), m(20, 25), 1, 'Cette page.', [['reste à faire', 'relire les textes avec moi']]]
+  ];
+  var colr = { me: 'var(--me)', agent: 'var(--agent)', critic: 'var(--critic)' }, lbl = { me: 'moi', agent: 'agent', critic: 'critique' };
+  var wf = document.getElementById('wf'), det = document.getElementById('wf-detail');
+  document.getElementById('nsteps').textContent = steps.length;
+  steps.forEach(function (st, i) {
+    var b = document.createElement('button'); b.className = 'wf-row'; b.id = 'wf-' + i; b.setAttribute('aria-pressed', 'false');
+    var l = X(st[2]), w = st[3] ? X(st[3]) - l : 0;
+    b.innerHTML = '<span class="t">' + (st[4] ? '≈' : '') + hh(st[2]) + '</span><span class="n" style="color:' + (st[0] === 'me' ? 'var(--me)' : 'inherit') + '">' + st[1] + '</span>' +
+      '<span class="wf-track"><span class="wf-gap" style="left:34%;width:6%"></span><span class="wf-bar" style="left:' + l + '%;width:' + w + '%;background:' + colr[st[0]] + '"></span></span>';
+    b.addEventListener('click', function () { sel(i); }); wf.appendChild(b);
+  });
+  var ticks = document.getElementById('wf-ticks');
+  [m(12, 30), m(13, 30), m(18, 30), m(19, 0), m(19, 30), m(20, 0)].forEach(function (t) { var e = document.createElement('span'); e.style.left = X(t) + '%'; e.textContent = hh(t); ticks.appendChild(e); });
+  function sel(i) {
+    var st = steps[i];
+    wf.querySelectorAll('.wf-row').forEach(function (r, j) { r.setAttribute('aria-pressed', String(j === i)); });
+    var when = (st[4] ? '≈' : '') + hh(st[2]) + (st[3] ? ' → ' + hh(st[3]) : '');
+    det.innerHTML = '<div><h3><span class="pill ' + (st[0] === 'me' ? 'me' : st[0] === 'critic' ? 'crit' : 'ok') + '">' + lbl[st[0]] + '</span>' + st[1] + '</h3>' + (st[5] ? '<p>' + st[5] + '</p>' : '') + '</div>' +
+      '<dl><div><dt>quand</dt><dd>' + when + '</dd></div>' + st[6].map(function (f) { return '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>'; }).join('') + '</dl>';
+  }
+  sel(4);
+})();
+</script>
+</body>
+</html>

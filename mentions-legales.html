@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mentions légales · Yannick Gardiol</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+/* Layout : « Missions », même famille que l'atelier. Une interface d'outil soignée : panneaux, tableaux de runs, pastilles d'état. Même code couleur que le carnet (bleu = Yannick, vert = agents, orange = critiques, rouge = interdit / échec), même police tapée pour les données. */
+:root {
+  --bg: #F5F6F8; --surface: #FFFFFF; --sunk: #EEF0F3; --fg: #0F1218; --muted: #5E6573; --line: #E1E4E9;
+  --me: #1F4FD1; --agent: #2B8A3E; --critic: #D9480F; --red: #C92A2A; --on: #FFFFFF;
+  --sans: "Geist", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius: 10px;
+  color-scheme: light;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0D11; --surface: #12151B; --sunk: #181C23; --fg: #E8EBF0; --muted: #959DAB; --line: #232833;
+    --me: #7C9BFF; --agent: #5CC07A; --critic: #FF8A4C; --red: #FF6B6B; --on: #0B0D11; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B0D11; --surface: #12151B; --sunk: #181C23; --fg: #E8EBF0; --muted: #959DAB; --line: #232833;
+  --me: #7C9BFF; --agent: #5CC07A; --critic: #FF8A4C; --red: #FF6B6B; --on: #0B0D11; color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: calc(64px + env(safe-area-inset-top, 0px)); }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+p, h1, h2, h3, ul, ol, dl, dd { margin: 0; }
+a { color: var(--me); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--me); outline-offset: 3px; border-radius: 4px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.mono { font-family: var(--mono); }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Barre du haut, partagée avec le carnet */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: color-mix(in srgb, var(--bg) 85%, transparent); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 12px 24px; min-height: 60px; flex-wrap: wrap; }
+.brand { font-family: var(--mono); font-weight: 700; color: var(--fg); text-decoration: none; letter-spacing: -.02em; }
+.tabs { display: flex; gap: 4px; padding: 4px; background: var(--sunk); border-radius: 999px; }
+.tabs a, .tabs span { font-size: .88rem; font-weight: 500; padding: 5px 14px; border-radius: 999px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+.tabs a:hover { color: var(--fg); }
+.tabs [aria-current="page"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgb(0 0 0 / .08), 0 0 0 1px var(--line); }
+.tabs .soon { opacity: .55; cursor: default; }
+.top .spacer { flex: 1; }
+.cta { font-weight: 600; font-size: .9rem; padding: 8px 14px; border-radius: 8px; background: var(--fg); color: var(--bg); text-decoration: none; white-space: nowrap; }
+
+/* En-tête de page */
+.hero .wrap { padding-block: 56px 40px; display: grid; gap: 20px; }
+.eyebrow { font-family: var(--mono); font-size: .78rem; color: var(--muted); letter-spacing: .02em; }
+.hero h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); line-height: 1.02; letter-spacing: -.045em; font-weight: 700; max-width: 16ch; text-wrap: balance; }
+.hero h1 .m { color: var(--me); font-family: "Caveat", cursive; font-weight: 700; font-size: 1.12em; letter-spacing: 0; } .hero h1 .a { color: var(--agent); }
+.hero p { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .85rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+
+/* Sections et panneaux */
+.sec .wrap { padding-block: 40px; display: grid; gap: 20px; }
+.sec-head { display: flex; justify-content: space-between; align-items: end; gap: 8px 24px; flex-wrap: wrap; }
+.sec-head h2 { font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.03em; line-height: 1.15; font-weight: 650; }
+.sec-head p { color: var(--muted); max-width: 62ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 1px 2px rgb(0 0 0 / .04); overflow: hidden; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: .72rem; font-weight: 500; padding: 2px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid currentColor; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.ok { color: var(--agent); } .pill.fail { color: var(--red); } .pill.me { color: var(--me); } .pill.idle { color: var(--muted); } .pill.crit { color: var(--critic); }
+
+/* L'équipe : orchestrateur + agents */
+.org { padding: 20px; display: grid; gap: 0; }
+.lead { border: 1.5px solid var(--me); background: color-mix(in srgb, var(--me) 7%, var(--surface)); border-radius: 10px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 8px 20px; flex-wrap: wrap; }
+.lead b { font-size: 1.15rem; letter-spacing: -.02em; }
+.lead .rights { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-family: var(--mono); font-size: .72rem; padding: 3px 8px; border-radius: 6px; background: var(--sunk); color: var(--fg); white-space: nowrap; }
+.tag.me { background: var(--me); color: var(--on); }
+.bus { height: 28px; margin-inline: 10%; border: 1.5px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; position: relative; }
+.bus::before { content: ""; position: absolute; left: 50%; top: -1px; width: 1.5px; height: 14px; background: var(--line); }
+.agents { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding-top: 14px; }
+.agent { border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 8px; align-content: start; position: relative; background: var(--surface); min-width: 0; }
+.agent::before { content: ""; position: absolute; left: 50%; top: -15px; width: 1.5px; height: 14px; background: var(--line); }
+.agent h3 { font-size: .98rem; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+.agent h3 .dot { background: var(--agent); }
+.agent p { font-size: .85rem; color: var(--muted); line-height: 1.5; }
+.never { font-family: var(--mono); font-size: .72rem; color: var(--red); background: color-mix(in srgb, var(--red) 9%, transparent); border-radius: 6px; padding: 6px 8px; line-height: 1.45; }
+.never::before { content: "jamais · "; font-weight: 700; }
+
+/* Runs */
+.runs { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.runs-wrap { overflow-x: auto; }
+.runs th { font-family: var(--mono); font-size: .7rem; font-weight: 500; color: var(--muted); text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--sunk); }
+.runs td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.runs tr:last-child td { border-bottom: 0; }
+.runs td.date { font-family: var(--mono); font-size: .8rem; color: var(--muted); white-space: nowrap; }
+.runs td.what b { display: block; font-weight: 600; letter-spacing: -.01em; }
+.runs td.what span { color: var(--muted); font-size: .86rem; }
+.runs td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .85rem; }
+.runs tr.failed td.what b { color: var(--red); }
+.lesson { display: block; margin-top: 4px; font-family: var(--mono); font-size: .76rem; color: var(--red); }
+.runs .agents-bar { display: flex; gap: 2px; margin-top: 6px; flex-wrap: wrap; max-width: 220px; }
+.runs .agents-bar i { width: 6px; height: 10px; border-radius: 2px; background: var(--agent); opacity: .85; }
+.runs tr.failed .agents-bar i { background: var(--red); }
+.runs .agents-bar i.c { background: var(--critic); }
+
+/* Garde-fous */
+.policies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+.policy { padding: 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.policy:nth-child(3n) { border-right: 0; }
+.policy:nth-last-child(-n+3) { border-bottom: 0; }
+.policy code { font-family: var(--mono); font-size: .72rem; color: var(--muted); overflow-wrap: anywhere; }
+.policy b { font-size: .98rem; letter-spacing: -.01em; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.policy p { font-size: .86rem; color: var(--muted); line-height: 1.5; }
+
+/* Terrains d'essai */
+.products { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.product { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 12px; align-content: start; min-width: 0; position: relative; overflow: hidden; }
+.product::after { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--accent, var(--line)); }
+.product .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.product h3 { font-size: 1.3rem; letter-spacing: -.03em; }
+.product p { color: var(--muted); font-size: .92rem; line-height: 1.55; }
+.kpi { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding-top: 12px; border-top: 1px dashed var(--line); }
+.kpi b { font-family: var(--mono); font-size: 1.9rem; letter-spacing: -.04em; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--muted); font-size: .86rem; }
+.todo { background: color-mix(in srgb, #F2C94C 35%, transparent); padding: 0 4px; border-radius: 3px; }
+
+/* Pied */
+.back .wrap { padding-block: 48px 64px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); }
+.back a.carnet { font-weight: 600; text-decoration: none; }
+.back small { color: var(--muted); }
+
+@media (max-width: 900px) {
+  .agents { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .agent::before, .bus { display: none; }
+  .agents { padding-top: 12px; }
+  .policies { grid-template-columns: 1fr; }
+  .policy { border-right: 0; border-bottom: 1px solid var(--line) !important; }
+  .policy:last-child { border-bottom: 0 !important; }
+  .products { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .runs thead { display: none; }
+  .runs, .runs tbody { display: block; }
+  .runs tr { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .runs tr:last-child { border-bottom: 0; }
+  .runs td { padding: 0; border: 0; }
+  .runs td.what { grid-column: 1 / -1; grid-row: 2; }
+  .runs td.date { grid-column: 1; grid-row: 1; }
+  .runs td:last-child { grid-column: 3; grid-row: 1; }
+  .runs td.n { grid-column: 1 / -1; white-space: normal; min-width: 0 !important; }
+  .runs td.n::before { content: attr(data-label) " · "; color: var(--muted); }
+}
+@media (max-width: 520px) {
+  .agents { grid-template-columns: 1fr; }
+  .tabs a, .tabs span { padding: 5px 10px; }
+  .top .spacer { display: none; }
+}
+
+/* Missions */
+.missions { display: grid; }
+.mission { display: grid; grid-template-columns: 11rem minmax(0, 1fr) auto; gap: 6px 24px; padding: 18px 20px; border-bottom: 1px solid var(--line); align-items: start; }
+.mission:last-child { border-bottom: 0; }
+.mission .sector { font-family: var(--mono); font-size: .78rem; color: var(--muted); display: grid; gap: 2px; }
+.mission .sector b { color: var(--fg); font-weight: 600; font-family: var(--sans); font-size: .95rem; }
+.mission h3 { font-size: 1.1rem; letter-spacing: -.02em; }
+.mission p { color: var(--muted); font-size: .92rem; line-height: 1.55; margin-top: 4px; }
+.mission .lesson-line { font-family: var(--mono); font-size: .78rem; color: var(--red); margin-top: 6px; }
+.mission.stopped h3 { text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 2px; color: var(--muted); }
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kpis div { padding: 20px; border-right: 1px solid var(--line); display: grid; gap: 4px; }
+.kpis div:last-child { border-right: 0; }
+.kpis b { font-family: var(--mono); font-size: clamp(1.8rem, 3.6vw, 2.6rem); letter-spacing: -.05em; color: var(--agent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.kpis span { color: var(--muted); font-size: .9rem; }
+.work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.work > div { padding: 20px; }
+.work > div + div { border-left: 1px solid var(--line); }
+.work p { color: var(--muted); }
+.work p + p { margin-top: 10px; }
+.work .quote { color: var(--fg); font-weight: 600; font-size: 1.05rem; letter-spacing: -.01em; }
+.kv { display: grid; gap: 0; }
+.kv div { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.kv div:last-child { border-bottom: 0; }
+.kv dt { font-family: var(--mono); font-size: .75rem; color: var(--muted); padding-top: 3px; }
+.kv dd { display: flex; flex-wrap: wrap; gap: 6px; }
+.contact-band .wrap { padding-block: 40px 16px; }
+.contact-card { background: var(--fg); color: var(--bg); border-radius: var(--radius); padding: 28px; display: flex; justify-content: space-between; align-items: center; gap: 16px 24px; flex-wrap: wrap; }
+.contact-card h2 { font-size: clamp(1.4rem, 3vw, 1.9rem); letter-spacing: -.03em; }
+.contact-card .mail { font-family: var(--mono); font-size: .95rem; opacity: .85; user-select: all; overflow-wrap: anywhere; }
+.contact-card a.cta { background: var(--bg); color: var(--fg); }
+@media (max-width: 900px) {
+  .mission { grid-template-columns: 1fr; }
+  .kpis, .work { grid-template-columns: 1fr; }
+  .kpis div { border-right: 0; border-bottom: 1px solid var(--line); }
+  .kpis div:last-child { border-bottom: 0; }
+  .work > div + div { border-left: 0; border-top: 1px solid var(--line); }
+}
+
+.legal .wrap { padding-block: 8px 48px; }
+.legal .panel { padding: 8px 0; }
+.legal dl { display: grid; }
+.legal dl > div { display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: 6px 24px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.legal dl > div:last-child { border-bottom: 0; }
+.legal dt { font-weight: 600; }
+.legal dd { color: var(--muted); }
+.legal dd p + p { margin-top: 8px; }
+@media (max-width: 700px) { .legal dl > div { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="./">yantech</a>
+    <nav class="tabs" aria-label="Pages">
+      <a href="./">Le carnet</a>
+      <a href="atelier.html">L'atelier</a>
+      <a href="missions.html">Missions</a>
+    </nav>
+    <span class="spacer"></span>
+    <a class="cta" href="#contact">Me contacter</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow">// mentions légales</span>
+      <h1>Mentions légales</h1>
+    </div>
+  </section>
+  <section class="legal">
+    <div class="wrap">
+      <div class="panel">
+        <dl>
+          <div><dt>Éditeur</dt><dd><p>YANTECH, EURL au capital de 110 000 €.</p><p>Siège social : 229 rue Saint-Honoré, 75001 Paris.</p><p>RCS Paris 922 589 866. TVA intracommunautaire : FR31922589866.</p><p>Contact : <span class="mono">yannick.gardiol@yantech.fr</span></p></dd></div>
+          <div><dt>Directeur de la publication</dt><dd>Yannick Gardiol, gérant.</dd></div>
+          <div><dt>Hébergeur</dt><dd><p>GitHub, Inc. (service GitHub Pages), 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.</p></dd></div>
+          <div><dt>Données personnelles</dt><dd><p>Ce site ne dépose aucun cookie et ne mesure pas l'audience. Les polices et les scripts sont hébergés avec le site : aucune ressource n'est chargée depuis un service tiers.</p><p>L'hébergeur conserve des journaux techniques, dont l'adresse IP des visiteurs, pour la sécurité du service.</p><p>Le bouton « Prendre 30 minutes » ouvre la page de prise de rendez-vous de Google Agenda. Les informations saisies y sont traitées par Google et par moi, uniquement pour organiser le rendez-vous.</p><p>Pour toute question ou demande sur vos données : <span class="mono">yannick.gardiol@yantech.fr</span>.</p></dd></div>
+          <div><dt>Propriété intellectuelle</dt><dd><p>Textes, schémas et photographie : YANTECH, tous droits réservés.</p><p>Polices Caveat, Geist et JetBrains Mono sous licence SIL Open Font License. Bibliothèque rough.js sous licence MIT.</p></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="back">
+  <div class="wrap">
+    <a class="carnet" href="./">← Retour au carnet</a>
+    <small>YANTECH · <a href="mentions-legales.html">Mentions légales</a></small>
+  </div>
+</footer>
+</body>
+</html>

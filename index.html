@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Yannick Gardiol · architecte et développeur IA</title>
+<meta name="description" content="Yannick Gardiol, architecte et développeur IA à Aix-en-Provence. Je construis avec une équipe d'agents IA, et je garde la main.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2315171C'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23fff' font-family='monospace'%3Ey%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/fonts.css">
+<script src="assets/vendor/rough-4.6.6.js"></script>
+<style>
+/* Layout : « La main ». Une feuille lignée tous les 32 px : chaque ligne de texte, chaque marge et chaque image fait un multiple de 32 px, pour que tout s'écrive sur les lignes. Les traits horizontaux sont des ombres (pas de bordure) pour ne pas décaler la grille. Thème clair assumé, comme une feuille de papier. */
+:root {
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  --paper: #FFFFFF; --ink: #15171C; --muted: #646A75; --rule: #E3E6EB;
+  --me: #1F4FD1; --agent: #2B8A3E; --critic: #E8590C; --red: #D9381E; --hi: #FFE8A3;
+  --type: "JetBrains Mono", ui-monospace, monospace; --hand: "Caveat", "Comic Sans MS", cursive;
+  --ln: 32px;
+  --mock-bg: #15171C; --mock-fg: #FFFFFF;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--type); font-size: 15px; line-height: var(--ln); }
+.paper { background-image: linear-gradient(180deg, transparent 31px, var(--rule) 31px); background-size: 100% 32px; background-repeat: repeat; background-position: 0 -6px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+p, h1, h2, h3, ol, ul, dl, dd, figure { margin: 0; }
+h1, h2, h3 { font-weight: 700; }
+a { color: var(--me); }
+a:focus-visible, button:focus-visible { outline: 2px dashed var(--me); outline-offset: 4px; }
+.hand { font-family: var(--hand); font-weight: 700; color: var(--me); font-size: 1.5rem; }
+.hand.red { color: var(--red); } .hand.green { color: var(--agent); } .hand.orange { color: var(--critic); }
+.who { font-size: .78rem; color: var(--muted); letter-spacing: .03em; }
+.strike { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--red); text-decoration-thickness: 3px; }
+.fix { font-family: var(--hand); font-weight: 700; color: var(--red); font-size: 1.5rem; display: inline-block; transform: rotate(-3deg); margin-left: 6px; }
+.todo { background: var(--hi); padding: 0 4px; }
+.mark { background: linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 88%, transparent 88%); }
+p .hand, h3 .hand, span .hand, dd .hand, .note .hand, .card .st { line-height: var(--ln); vertical-align: top; }
+.fix { line-height: var(--ln); vertical-align: top; }
+.rule-top { box-shadow: inset 0 2px 0 var(--ink); }
+
+/* Barre de maquette (absente du vrai site) */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+.mock { background: var(--mock-bg); color: var(--mock-fg); font-size: .78rem; }
+.mock .wrap { padding-block: 0; display: flex; justify-content: space-between; gap: 0 16px; flex-wrap: wrap; }
+.mock span { opacity: .75; }
+
+/* Menu : collant, bien visible, dessiné à la main */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--paper); box-shadow: 0 2px 0 var(--ink); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 0 20px; flex-wrap: wrap; }
+.nav ul, .nav li { height: 64px; }
+.nav li { overflow: hidden; }
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); height: 64px; line-height: 32px; }
+.brand b { font-size: 1.2rem; }
+.brand .hand { font-size: 1.6rem; }
+.brand b { letter-spacing: -.02em; }
+.nav ul { list-style: none; padding: 0; display: flex; flex-wrap: nowrap; gap: 0 2px; }
+.nav li a { display: block; font-family: var(--type); font-weight: 700; font-size: .9rem; line-height: 64px; padding: 0 10px; color: var(--ink); text-decoration: none; }
+.nav li a:hover { color: var(--me); }
+.nav li.sep { color: var(--rule); line-height: 64px; padding: 0 4px; }
+.nav li a.page { color: var(--me); }
+.nav li a.on { color: var(--me); background: linear-gradient(transparent 46%, var(--hi) 46%, var(--hi) 66%, transparent 66%); }
+.nav .rdv { font-family: var(--type); font-weight: 700; font-size: .85rem; line-height: 32px; padding: 0 14px; color: var(--paper); background: var(--ink); text-decoration: none; box-shadow: 3px 3px 0 var(--me); white-space: nowrap; }
+.meta { display: flex; justify-content: space-between; gap: 0 24px; flex-wrap: wrap; font-size: .78rem; color: var(--muted); }
+
+/* Accroche */
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 0 48px; padding-block: 32px 64px; align-items: start; }
+.typed { display: grid; gap: 32px 0; font-size: 1.3rem; }
+.claim { font-family: var(--hand); font-weight: 700; color: var(--me); font-size: clamp(3rem, 7vw, 5.9rem); line-height: 96px; }
+.claim u { text-decoration: none; background: linear-gradient(transparent 70%, color-mix(in srgb, var(--me) 20%, transparent) 70%, color-mix(in srgb, var(--me) 20%, transparent) 90%, transparent 90%); }
+.lede { font-size: 1rem; }
+.cta { display: flex; gap: 32px 24px; align-items: center; flex-wrap: wrap; }
+.btn { display: inline-block; font-family: var(--type); font-weight: 700; font-size: .95rem; padding: 16px 22px; color: var(--paper); background: var(--ink); text-decoration: none; box-shadow: 4px 4px 0 var(--me); }
+.btn:hover { box-shadow: 6px 6px 0 var(--me); }
+.btn.light { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink), 4px 4px 0 var(--me); }
+.side { display: grid; gap: 32px 0; }
+.photo { position: relative; width: 264px; max-width: 100%; height: 352px; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: grayscale(1) contrast(1.05); outline: 1.5px solid var(--ink); transform: rotate(1.2deg); }
+.photo .tag { position: absolute; right: -16px; bottom: -16px; font-size: 1.8rem; transform: rotate(-6deg); background: var(--paper); padding: 0 6px; line-height: 40px; }
+.note { box-shadow: inset 2px 0 0 var(--ink); padding-left: 16px; font-size: .88rem; }
+.note .hand { display: block; }
+
+/* Sections */
+.sec .wrap { padding-block: 64px 32px; display: grid; gap: 32px 0; }
+.sec-head { display: grid; }
+.sec-head p { max-width: 70ch; }
+.sec-head h2 { font-family: var(--type); font-size: clamp(1.6rem, 3vw, 2.2rem); line-height: 64px; letter-spacing: -.04em; }
+.sec-head h2 .u { background: linear-gradient(transparent 58%, var(--hi) 58%, var(--hi) 88%, transparent 88%); padding: 0 4px; }
+.sec-head p { color: var(--muted); }
+.colhead { font-family: var(--type); font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.sketch-wrap { overflow-x: auto; overflow-y: hidden; }
+.sketch { display: block; }
+.sketch text { font-family: var(--hand); font-weight: 700; }
+
+/* Missions */
+.list .row { display: grid; grid-template-columns: 10rem minmax(0, 1fr) minmax(0, 17rem); gap: 0 20px; padding-bottom: 32px; }
+.list .k { color: var(--muted); font-size: .78rem; }
+.list .what { display: grid; min-width: 0; }
+.list .what small { color: var(--muted); font-size: .85rem; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 24px; }
+.stat { position: relative; display: grid; justify-items: start; align-content: start; padding-left: 16px; }
+.stat b { font-family: var(--type); font-size: clamp(2.2rem, 4.4vw, 3rem); line-height: 96px; letter-spacing: -.04em; color: var(--agent); position: relative; z-index: 1; }
+.stat span { font-size: .88rem; color: var(--muted); }
+.stat svg { position: absolute; left: 0; top: 0; pointer-events: none; overflow: visible; }
+.work { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px 40px; align-items: start; }
+.work .txt { display: grid; }
+.kv { display: grid; font-size: .88rem; }
+.kv div { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 0 14px; }
+.kv dt { color: var(--muted); }
+
+/* Équipe */
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px 48px; align-items: start; }
+.log { list-style: none; padding: 0; display: grid; gap: 32px 0; }
+.log li { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: 0 14px; }
+.log time { font-size: .85rem; color: var(--muted); }
+.log strong { display: block; }
+.log p { color: var(--muted); font-size: .9rem; }
+.log .hand { display: block; font-size: 1.4rem; }
+.guards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px 32px; }
+.guards li { display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 0 6px; align-items: start; }
+.guards .tick { font-family: var(--hand); font-size: 1.8rem; color: var(--agent); }
+.guards strong { display: block; font-size: .95rem; }
+.guards span { color: var(--muted); font-size: .86rem; }
+
+/* Terrains d'essai */
+.proj { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
+.card { position: relative; padding: 32px 24px; display: grid; align-content: start; }
+.card > svg.frame { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.card > * { position: relative; }
+.card h3 { font-size: 1.1rem; }
+.card .st { font-family: var(--hand); font-size: 1.4rem; font-weight: 700; margin-left: 10px; white-space: nowrap; }
+.card p { color: var(--muted); font-size: .9rem; }
+.card .big { font-size: .95rem; font-weight: 700; color: var(--ink); }
+
+/* Partage, moi */
+.share { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.share h3 { font-size: 1rem; }
+.share p { color: var(--muted); font-size: .9rem; }
+.me-quote { font-family: var(--type); font-weight: 700; font-size: clamp(1.4rem, 2.8vw, 1.9rem); line-height: 64px; letter-spacing: -.02em; color: var(--ink); max-width: 34ch; }
+.me-text { display: grid; max-width: 70ch; color: var(--muted); }
+
+/* Coulisses */
+.legend .hand { font-size: 1.35rem; }
+.trace-detail { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 36px; min-height: 192px; }
+.trace-detail h3 { font-size: 1rem; }
+.trace-detail p { color: var(--muted); font-size: .9rem; }
+.trace-detail dl { font-size: .82rem; display: grid; align-content: start; }
+.trace-detail dd { overflow-wrap: anywhere; }
+.trace-detail dl div { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 0 12px; }
+.trace-detail dt { color: var(--muted); }
+#trace-svg text { font-family: var(--type); font-weight: 500; }
+#trace-svg g.step { cursor: pointer; outline: none; }
+#trace-svg g.step:focus-visible text, #trace-svg g.step.on text { text-decoration: underline; }
+
+/* Contact */
+.contact .wrap { padding-block: 64px; display: grid; gap: 32px 0; justify-items: start; }
+.contact h2 { font-family: var(--type); font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 64px; letter-spacing: -.03em; color: var(--ink); }
+.mail { font-size: 1.05rem; padding: 16px; outline: 1.5px dashed var(--ink); outline-offset: -1.5px; background: var(--paper); user-select: all; overflow-wrap: anywhere; }
+footer .wrap { padding-block: 32px; font-size: .8rem; color: var(--muted); display: flex; justify-content: space-between; gap: 0 10px; flex-wrap: wrap; }
+
+@media (max-width: 860px) {
+  .hero .wrap, .work, .cols, .trace-detail { grid-template-columns: 1fr; }
+  .list .row { grid-template-columns: 1fr; }
+  .stats, .guards, .proj, .share { grid-template-columns: 1fr; }
+  .claim { line-height: 64px; }
+  .nav li a { font-size: .82rem; padding: 0 8px; }
+  .brand .hand { display: none; }
+  .nav nav { width: 100%; order: 3; }
+  .nav ul { overflow-x: auto; scrollbar-width: none; }
+  .nav ul::-webkit-scrollbar { display: none; }
+  .nav li { flex: none; }
+  .brand { height: 32px; }
+  .nav ul, .nav li { height: 32px; }
+  .nav li a { line-height: 32px; }
+}
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+
+
+<div class="paper">
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top"><b>yantech</b><span class="hand">Yannick Gardiol</span></a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#parcours">parcours</a></li><li><a href="#moi">qui je suis</a></li><li><a href="#partage">partage</a></li><li class="sep" aria-hidden="true">|</li><li><a class="page" href="atelier.html">l'atelier →</a></li><li><a class="page" href="missions.html">missions →</a></li>
+      </ul>
+    </nav>
+    <a class="rdv" href="#contact">me contacter</a>
+  </div>
+</header>
+<div class="wrap meta" id="top"><span>le carnet · tapé par mes agents</span><span>relu, raturé et signé par Yannick Gardiol</span></div>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="typed">
+        <span class="who">// proposé par un agent</span>
+        <p>Architecte et développeur IA. Je conçois des agents <span class="strike">évalués, observables et maîtrisés en coût</span><span class="fix">trop jargon</span></p>
+        <h1 class="hand claim">Je construis avec mes agents.<br><u>Je garde la main.</u></h1>
+        <p class="lede">Développeur passionné depuis 18 ans, j'aime apprendre et créer. Mes agents codent, relisent, vérifient et surveillent. Moi, je décide, et je veille à la sécurité et aux données.</p>
+        <div class="cta">
+          <a class="btn" href="https://calendar.app.google/P8K4nFzCN2Go4vd29" target="_blank" rel="noopener noreferrer">Prendre 30 minutes</a>
+          <a class="btn light" href="atelier.html">L'atelier →</a>
+          <a class="btn light" href="missions.html">Les missions →</a>
+        </div>
+      </div>
+      <div class="side">
+        <div class="photo"><img src="assets/portrait.jpg" alt="Portrait de Yannick Gardiol" width="640" height="853"><span class="hand tag">c'est moi</span></div>
+        <div class="note">18 ans d'expérience<span class="hand">dev depuis 2008, lead depuis 2014</span></div>
+        <div class="note">Basé à Aix-en-Provence<span class="hand">hybride, surtout à distance</span></div>
+        <div class="note">Claude Partner Network<span class="hand">un créneau ? un clic suffit</span></div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+
+
+  <section class="sec" id="parcours">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="who">// parcours</span>
+        <h2>Dix-huit ans <span class="u">de code</span></h2>
+        <p>Du premier poste de développeur à l'équipe d'agents. Secteurs : aéronautique, énergie, imagerie médicale, édition logicielle, logistique, assurance, notariat.</p>
+      </div>
+      <div class="sketch-wrap"><svg id="timeline" class="sketch" role="img" aria-label="Frise du parcours : 2008 développeur dans l'aéronautique ; 2014 lead technique dans l'énergie ; 2015 responsable technique de portails B2B ; 2020 freelance, une assurance suisse ; 2021 lead front-end et coach en imagerie médicale ; 2022 expert technique sur une plateforme qui génère des applications, pour des développeurs ; 2023 lead backend en logistique ; fin 2025 IA générative ; 2026 une équipe d'agents."></svg></div>
+    </div>
+  </section>
+
+  <section class="sec" id="moi">
+    <div class="wrap">
+      <div class="sec-head"><span class="who">// qui je suis</span></div>
+      <p class="me-quote">J'aime apprendre et créer. Le dev me passionne depuis 18 ans, et l'IA me permet d'aller <span class="mark">encore plus loin</span>.</p>
+      <div class="me-text">
+        <p>Architecte logiciel, passé par l'aéronautique, l'énergie, la santé, le notariat, l'assurance et la logistique. Aujourd'hui, l'IA générative appliquée à des métiers où l'erreur coûte cher.</p>
+        <p>À côté : du CrossFit, du renforcement, un peu de course à pied et de la randonnée.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="partage">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="who">// partage</span>
+        <h2>Ce que j'apprends, <span class="u">je le transmets</span></h2>
+        <p>Ce n'est pas mon métier principal, c'est ce que je fais à côté, par goût.</p>
+      </div>
+      <div class="share">
+        <div><h3>Développer avec l'IA</h3><p>J'accompagne des développeurs qui se mettent à coder avec l'IA. Deux jours chez un éditeur marseillais : une fonctionnalité complète, un bug corrigé, un plan de refacto.</p></div>
+        <div><h3>Meetups</h3><p>« Vue 3 ça va très vite ! », « Nuxt 3, quelles nouveautés », « Chaos to Clarity ».</p></div>
+        <div><h3>Cours LangGraph</h3><p>13 exercices, du graphe simple à l'agent piloté.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="contact" id="contact">
+    <div class="wrap">
+      <span class="who">// la suite, c'est vous</span>
+      <h2>Envie d'en parler ?</h2>
+      <div class="cta">
+        <a class="btn" href="https://calendar.app.google/P8K4nFzCN2Go4vd29" target="_blank" rel="noopener noreferrer">Prendre 30 minutes</a>
+        <a class="btn light" href="https://www.linkedin.com/in/yannick-gardiol-87021525">LinkedIn</a>
+      </div>
+      <p class="mail">yannick.gardiol@yantech.fr</p>
+      <p class="hand">30 minutes, au créneau qui vous arrange</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap rule-top">
+    <span>YANTECH · Aix-en-Provence</span>
+    <span><a href="mentions-legales.html">Mentions légales</a> · <a href="https://www.linkedin.com/in/yannick-gardiol-87021525">LinkedIn</a></span>
+  </div>
+</footer>
+</div>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  var C = { me: '#1F4FD1', agent: '#2B8A3E', critic: '#E8590C', red: '#D9381E', ink: '#15171C', muted: '#646A75' };
+  var hasRough = typeof rough !== 'undefined';
+
+  function text(svg, x, y, str, o) {
+    o = o || {};
+    var t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x); t.setAttribute('y', y);
+    t.setAttribute('text-anchor', o.anchor || 'middle');
+    t.setAttribute('font-size', o.size || 22);
+    t.setAttribute('fill', o.color || C.ink);
+    t.textContent = str; svg.appendChild(t); return t;
+  }
+  function plainRect(svg, x, y, w, h, stroke, fill) {
+    var r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
+    r.setAttribute('fill', fill || 'none'); r.setAttribute('stroke', stroke); r.setAttribute('stroke-width', 2); r.setAttribute('rx', 6);
+    svg.appendChild(r);
+  }
+  function plainLine(svg, x1, y1, x2, y2, stroke) {
+    var l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('stroke', stroke); l.setAttribute('stroke-width', 2); svg.appendChild(l);
+  }
+  function box(svg, rc, x, y, w, h, stroke, seed) {
+    if (rc) svg.appendChild(rc.rectangle(x, y, w, h, { stroke: stroke, strokeWidth: 2, roughness: 1.4, seed: seed, fill: stroke, fillStyle: 'hachure', hachureGap: 9, fillWeight: .6 }));
+    else plainRect(svg, x, y, w, h, stroke, 'none');
+  }
+  function arrow(svg, rc, x1, y1, x2, y2, stroke, seed) {
+    if (!rc) { plainLine(svg, x1, y1, x2, y2, stroke); return; }
+    var mx = (x1 + x2) / 2 + (y2 - y1) * 0.08, my = (y1 + y2) / 2 - (x2 - x1) * 0.08;
+    svg.appendChild(rc.curve([[x1, y1], [mx, my], [x2, y2]], { stroke: stroke, strokeWidth: 1.8, roughness: 1.1, seed: seed }));
+    var a = Math.atan2(y2 - my, x2 - mx), L = 14;
+    svg.appendChild(rc.line(x2, y2, x2 - L * Math.cos(a - .45), y2 - L * Math.sin(a - .45), { stroke: stroke, strokeWidth: 1.8, seed: seed + 1 }));
+    svg.appendChild(rc.line(x2, y2, x2 - L * Math.cos(a + .45), y2 - L * Math.sin(a + .45), { stroke: stroke, strokeWidth: 1.8, seed: seed + 2 }));
+  }
+  /* Fond blanc derrière un texte, pour qu'il reste lisible sur les hachures */
+  function label(svg, x, y, str, o) {
+    var t = text(svg, x, y, str, o);
+    try {
+      var b = t.getBBox(), bg = document.createElementNS(NS, 'rect');
+      bg.setAttribute('x', b.x - 4); bg.setAttribute('y', b.y - 1); bg.setAttribute('width', b.width + 8); bg.setAttribute('height', b.height + 2);
+      bg.setAttribute('fill', '#FFFFFF'); svg.insertBefore(bg, t);
+    } catch (e) {}
+    return t;
+  }
+
+  /* ---------- Schéma de l'équipe ---------- */
+  function drawTeamNarrow(team, W) {
+    var rc = hasRough ? rough.svg(team) : null, n = AGENTS.length;
+    var H = 96 + n * 128 + 32;
+    team.setAttribute('width', W); team.setAttribute('height', H); team.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    box(team, rc, 2, 8, W - 4, 80, C.me, 3);
+    label(team, W / 2, 44, 'moi', { size: 36, color: C.me });
+    label(team, W / 2, 72, "je décide, je valide l'irréversible", { size: 19, color: C.me });
+    if (rc) team.appendChild(rc.line(18, 90, 18, 96 + (n - 1) * 128 + 64, { stroke: C.muted, strokeWidth: 1.8, seed: 9 }));
+    AGENTS.forEach(function (a, i) {
+      var y = 128 + i * 128;
+      arrow(team, rc, 18, y + 24, 34, y + 24, C.muted, 60 + i * 3);
+      box(team, rc, 38, y - 8, W - 42, 64, C.agent, 11 + i * 5);
+      label(team, 38 + (W - 42) / 2, y + 20, a.name, { size: 26, color: C.agent });
+      label(team, 38 + (W - 42) / 2, y + 44, a.sub, { size: 17, color: C.muted });
+      text(team, 38 + (W - 42) / 2, y + 82, '✕ ' + a.no, { size: 20, color: C.red });
+    });
+  }
+  var AGENTS = [
+    { name: 'développeurs', sub: 'un lot chacun, en parallèle', no: "toucher au lot d'un autre", x: 160, y: 95 },
+    { name: 'relecteurs', sub: "cherchent l'erreur des autres", no: 'relire leur propre travail', x: 840, y: 95 },
+    { name: 'vérificateurs', sub: 'chaque chiffre à sa source', no: 'un chiffre sans source', x: 150, y: 440 },
+    { name: 'veilleur de prod', sub: '5, 25, 60 min après livraison', no: 'toucher à la prod sans moi', x: 850, y: 440 },
+    { name: 'assistant du matin', sub: 'briefing à 7 h, veille', no: 'ouvrir un lien sans accord', x: 500, y: 490 }
+  ];
+  function drawTeam() {
+    var team = document.getElementById('team');
+    if (!team) return;
+    while (team.firstChild) team.removeChild(team.firstChild);
+    var W = team.parentNode.clientWidth;
+    if (W < 760) { drawTeamNarrow(team, W); return; }
+    team.setAttribute('width', 1000); team.setAttribute('height', 576); team.setAttribute('viewBox', '0 0 1000 576');
+    var rc = hasRough ? rough.svg(team) : null;
+    var me = { x: 500, y: 285, w: 300, h: 96 };
+    var agents = AGENTS;
+    agents.forEach(function (a, i) {
+      var dx = a.x - me.x, dy = a.y - me.y, d = Math.sqrt(dx * dx + dy * dy);
+      arrow(team, rc, me.x + dx / d * 165, me.y + dy / d * 62, a.x - dx / d * 135, a.y - dy / d * 50, C.muted, 40 + i * 7);
+    });
+    box(team, rc, me.x - me.w / 2, me.y - me.h / 2, me.w, me.h, C.me, 3);
+    label(team, me.x, me.y - 4, 'moi', { size: 44, color: C.me });
+    label(team, me.x, me.y + 30, "je décide, je valide l'irréversible", { size: 22, color: C.me });
+    agents.forEach(function (a, i) {
+      var w = 250, h = 74;
+      box(team, rc, a.x - w / 2, a.y - h / 2, w, h, C.agent, 11 + i * 5);
+      label(team, a.x, a.y - 2, a.name, { size: 30, color: C.agent });
+      label(team, a.x, a.y + 24, a.sub, { size: 20, color: C.muted });
+      text(team, a.x, a.y + (a.y > me.y ? 68 : -50), '✕ ' + a.no, { size: 24, color: C.red });
+    });
+  }
+
+  /* ---------- Cercles autour des chiffres, cadres des projets ---------- */
+  function drawCircles() {
+    document.querySelectorAll('.stat').forEach(function (stat, i) {
+      var svg = stat.querySelector('svg.circle'), b = stat.querySelector('b');
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var w = b.offsetWidth + 28, h = 72, x = b.offsetLeft - 14, y = b.offsetTop + 12;
+      svg.setAttribute('width', w); svg.setAttribute('height', h); svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.style.left = x + 'px'; svg.style.top = y + 'px';
+      if (hasRough) svg.appendChild(rough.svg(svg).ellipse(w / 2, h / 2, w - 4, h - 6, { stroke: C.agent, strokeWidth: 1.6, roughness: 1.6, seed: 70 + i }));
+    });
+  }
+  function frameCards() {
+    document.querySelectorAll('.card').forEach(function (card, i) {
+      var svg = card.querySelector('svg.frame'); while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var w = card.clientWidth, h = card.clientHeight;
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      var col = C[card.dataset.color] || C.ink;
+      if (hasRough) svg.appendChild(rough.svg(svg).rectangle(3, 3, w - 6, h - 6, { stroke: col, strokeWidth: 1.8, roughness: 1.3, seed: 90 + i, bowing: 1.5 }));
+      else plainRect(svg, 1, 1, w - 2, h - 2, col);
+    });
+  }
+
+  /* ---------- Coulisses : la trace dessinée ---------- */
+  function m(h, mn) { return h * 60 + mn; }
+  function hh(t) { var h = Math.floor(t / 60), mn = t % 60; return h + ':' + (mn < 10 ? '0' : '') + mn; }
+  var steps = [
+    { who: 'me', name: 'je décide : une page, trois angles', s: m(12, 22), d: "Un site vitrine sur une seule page qui mêle l'architecte IA, l'atelier de produits et le partage.", f: [['qui', 'moi']] },
+    { who: 'agent', name: 'maquette v1', s: m(12, 23), e: m(12, 32), ap: 1, d: 'Trois directions visuelles sur la même structure.', f: [['droits', 'écrire la maquette']] },
+    { who: 'me', name: '« jolie, mais trop conventionnelle »', s: m(12, 33), d: 'Mon retour. Trois palettes sur le même gabarit, ça reste du déjà-vu.', f: [['effet', 'on repart du fond']] },
+    { who: 'agent', name: 'maquette v2, trois concepts', s: m(12, 40), e: m(13, 52), ap: 1, d: "Une trace d'agent, une page de statut, un profil de course de trail.", f: [['sortie', 'publiée à 13:52']] },
+    { who: 'critic', name: '6 critiques en parallèle', s: m(18, 4), e: m(18, 11), ap: 1, d: "RH d'ESN, CTO, DSI, directeur artistique, gérante de PME, dev senior. Chacun joue un lecteur, aucun ne peut écrire.", f: [['droits', 'lecture seule'], ['trouvé', 'un faux chiffre de démo, une note interne visible']] },
+    { who: 'agent', name: 'synthèse des critiques', s: m(18, 11), d: 'Classements, défauts, questions à me poser.', f: [['sortie', 'journal du projet']] },
+    { who: 'me', name: 'je tranche : une vitrine', s: m(18, 17), d: "Le site montre qui je suis et ce que j'aime. Pas de tarif affiché.", f: [['qui', 'moi']] },
+    { who: 'agent', name: 'relit un mois de sessions', s: m(18, 18), e: m(18, 24), ap: 1, d: "Environ 990 sessions relues pour décrire mon équipe d'agents.", f: [['droits', 'lecture seule'], ['consigne', 'aucun secret, aucun nom de client']] },
+    { who: 'agent', name: 'maquette v3', s: m(18, 25), e: m(18, 31), ap: 1, d: 'Une première page complète, avec des faits réels seulement.', f: [] },
+    { who: 'critic', name: '6 critiques de direction et RH', s: m(18, 32), e: m(18, 36), ap: 1, d: "DG, DRH, recrutement ESN, directeur d'agence, DSI, innovation. Unanimes sur « ce qu'il ne fait jamais ».", f: [['effet', 'la trace descend en coulisses']] },
+    { who: 'agent', name: 'fouille LinkedIn, notes et Drive', s: m(18, 37), e: m(18, 41), ap: 1, d: "Remonte des faits que j'avais oubliés, une note périmée sur une mission, et un jeton d'accès oublié en clair.", f: [['effet', 'jeton supprimé avec mon accord']] },
+    { who: 'agent', name: 'maquette v4, photo, LinkedIn', s: m(18, 45), e: m(18, 58), ap: 1, d: 'Missions et équipe d\'abord, coulisses ensuite. Ma photo LinkedIn récupérée en local.', f: [] },
+    { who: 'agent', name: 'passe de design', s: m(19, 22), e: m(19, 30), ap: 1, d: 'Bandes, chiffres en grand, contact en négatif.', f: [] },
+    { who: 'me', name: '« toujours le même look »', s: m(19, 31), ap: 1, d: 'Mon retour : changer couleurs et polices ne suffit pas.', f: [['effet', 'trois looks radicaux']] },
+    { who: 'agent', name: 'trois looks radicaux', s: m(19, 31), e: m(19, 36), ap: 1, d: 'La main, le plan en cyanotype, le registre.', f: [] },
+    { who: 'me', name: 'je choisis « la main »', s: m(19, 38), ap: 1, d: 'Avec des schémas façon Excalidraw.', f: [['effet', 'cette page']] },
+    { who: 'agent', name: 'maquette v6, cette page', s: m(19, 40), e: m(19, 55), ap: 1, d: 'Texte tapé par les agents, corrigé à la main, schémas dessinés.', f: [['reste à faire', 'relire les textes avec moi']] }
+  ];
+  var col = { me: C.me, agent: C.agent, critic: C.critic };
+  var whoLabel = { me: 'moi', agent: 'agent', critic: 'critique' };
+  var tsvg = document.getElementById('trace-svg'), detail = document.getElementById('detail');
+  function drawTrace() {
+    if (!tsvg) return;
+    while (tsvg.firstChild) tsvg.removeChild(tsvg.firstChild);
+    var narrow = tsvg.parentNode.clientWidth < 760;
+    var W = narrow ? tsvg.parentNode.clientWidth : 1000, rowH = 32, top = 0, labelW = 360, A0 = m(12, 15), A1 = m(14, 0), B0 = m(18, 0), B1 = m(20, 0);
+    var X0 = labelW + 16, X1 = W - 10, cut = X0 + (X1 - X0) * 0.36, gap = 24;
+    function X(t) { return t <= A1 ? X0 + (t - A0) / (A1 - A0) * (cut - X0) : cut + gap + (t - B0) / (B1 - B0) * (X1 - cut - gap); }
+    var H = top + steps.length * rowH + (narrow ? 0 : 32);
+    tsvg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); tsvg.setAttribute('width', W); tsvg.setAttribute('height', H);
+    var rc = hasRough ? rough.svg(tsvg) : null;
+    if (rc && !narrow) tsvg.appendChild(rc.line(cut + gap / 2, top - 6, cut + gap / 2, H - 34, { stroke: C.muted, strokeWidth: 1, strokeLineDash: [6, 6], seed: 5 }));
+    if (!narrow) text(tsvg, cut + gap / 2, H - 11, '14 h → 18 h', { size: 12, color: C.muted });
+    (narrow ? [] : [m(12, 30), m(13, 30), m(18, 30), m(19, 0), m(19, 30), m(20, 0)]).forEach(function (t) { text(tsvg, X(t), H - 11, hh(t), { size: 12, color: C.muted, anchor: t === m(20, 0) ? 'end' : 'middle' }); });
+    steps.forEach(function (st, i) {
+      var y = top + i * rowH, g = document.createElementNS(NS, 'g');
+      g.setAttribute('class', 'step'); g.setAttribute('tabindex', '0'); g.setAttribute('role', 'button'); g.setAttribute('aria-label', st.name);
+      tsvg.appendChild(g);
+      var hit = document.createElementNS(NS, 'rect'); hit.setAttribute('x', 0); hit.setAttribute('y', y); hit.setAttribute('width', W); hit.setAttribute('height', rowH); hit.setAttribute('fill', 'transparent'); g.appendChild(hit);
+      text(g, narrow ? 22 : 0, y + 21, (st.ap ? '≈' : '') + hh(st.s) + '  ' + st.name, { anchor: 'start', size: narrow ? 11.5 : 13, color: col[st.who] });
+      if (narrow) { if (rc) g.appendChild(rc.rectangle(2, y + 9, 12, 12, { stroke: col[st.who], fill: col[st.who], fillStyle: 'hachure', hachureGap: 3, seed: 200 + i })); else plainRect(g, 2, y + 9, 12, 12, col[st.who], 'none'); }
+      else {
+      var x1 = X(st.s), x2 = st.e ? X(st.e) : x1 + 10, w = Math.max(14, x2 - x1);
+      if (rc) g.appendChild(rc.rectangle(x1, y + 7, w, 17, { stroke: col[st.who], strokeWidth: 1.6, roughness: 1.2, fill: col[st.who], fillStyle: 'hachure', hachureGap: 5, seed: 200 + i }));
+      else plainRect(g, x1, y + 7, w, 17, col[st.who], 'none');
+      }
+      g.addEventListener('click', function () { select(i); });
+      g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(i); } });
+    });
+  }
+  function select(i) {
+    if (!tsvg || !detail) return;
+    var st = steps[i];
+    tsvg.querySelectorAll('g.step').forEach(function (g, j) { g.classList.toggle('on', j === i); });
+    var when = (st.ap ? '≈' : '') + hh(st.s) + (st.e ? ' → ' + hh(st.e) : '');
+    detail.innerHTML = '<div><h3><span class="hand" style="color:' + col[st.who] + '">' + whoLabel[st.who] + '</span> · ' + st.name + '</h3><p>' + st.d + '</p></div>' +
+      '<dl><div><dt>quand</dt><dd>' + when + '</dd></div>' + st.f.map(function (f) { return '<div><dt>' + f[0] + '</dt><dd>' + f[1] + '</dd></div>'; }).join('') + '</dl>';
+  }
+
+  /* ---------- Parcours : frise dessinée ---------- */
+  var PATH = [
+    { y: '2008', t: 'développeur', n: 'aéronautique' },
+    { y: '2014', t: 'lead technique', n: 'énergie' },
+    { y: '2015', t: 'resp. technique', n: 'portails B2B' },
+    { y: '2020', t: 'freelance', n: 'assurance suisse' },
+    { y: '2021', t: 'lead front, coach', n: 'imagerie médicale' },
+    { y: '2022', t: 'expert technique', n: "générateur d'apps" },
+    { y: '2023', t: 'lead backend', n: 'logistique' },
+    { y: 'fin 2025', t: 'IA générative', n: 'rigueur du logiciel' },
+    { y: '2026', t: "équipe d'agents", n: "→ l'atelier", agent: 1 }
+  ];
+  function drawTimeline() {
+    var svg = document.getElementById('timeline');
+    if (!svg) return;
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var W = svg.parentNode.clientWidth, rc = hasRough ? rough.svg(svg) : null, narrow = W < 760;
+    function mono(x, y, str, size, color, weight, anchor) {
+      var t = text(svg, x, y, str, { size: size, color: color, anchor: anchor || 'middle' });
+      t.style.fontFamily = '"JetBrains Mono", monospace'; t.style.fontWeight = weight || 500; return t;
+    }
+    if (!narrow) {
+      var H = 256; W = 1000;
+      svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+      var y0 = 136, step = (W - 140) / (PATH.length - 1);
+      if (rc) { svg.appendChild(rc.line(10, y0, W - 10, y0, { stroke: C.ink, strokeWidth: 2, roughness: 1.2, seed: 1 })); svg.appendChild(rc.line(W - 10, y0, W - 24, y0 - 8, { stroke: C.ink, strokeWidth: 2, seed: 2 })); svg.appendChild(rc.line(W - 10, y0, W - 24, y0 + 8, { stroke: C.ink, strokeWidth: 2, seed: 3 })); }
+      else plainLine(svg, 10, y0, W - 10, y0, C.ink);
+      PATH.forEach(function (p, i) {
+        var x = 60 + i * step, col = p.agent ? C.agent : C.me;
+        if (rc) svg.appendChild(rc.circle(x, y0, 18, { stroke: col, fill: col, fillStyle: 'solid', roughness: 1, seed: 20 + i }));
+        var odd = i % 2;
+        mono(x, odd ? 48 : 64, p.y, 16, C.ink, 700);
+        mono(x, odd ? 72 : 88, p.t, 11.5, C.muted, 500);
+        if (rc) svg.appendChild(rc.line(x, odd ? 80 : 96, x, y0 - 12, { stroke: C.rule || '#D5D9E0', strokeWidth: 1, seed: 40 + i }));
+        text(svg, x, odd ? 212 : 184, p.n, { size: 20, color: p.red ? C.red : col });
+      });
+    } else {
+      var rowH = 96, H2 = PATH.length * rowH;
+      svg.setAttribute('width', W); svg.setAttribute('height', H2); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H2);
+      if (rc) svg.appendChild(rc.line(16, 12, 16, H2 - 12, { stroke: C.ink, strokeWidth: 2, roughness: 1.2, seed: 1 }));
+      PATH.forEach(function (p, i) {
+        var y = i * rowH, col = p.agent ? C.agent : C.me;
+        if (rc) svg.appendChild(rc.circle(16, y + 20, 14, { stroke: col, fill: col, fillStyle: 'solid', roughness: 1, seed: 20 + i }));
+        mono(40, y + 24, p.y + '  ' + p.t, 13, C.ink, 700, 'start');
+        text(svg, 40, y + 56, p.n, { size: 21, color: p.red ? C.red : col, anchor: 'start' });
+      });
+    }
+  }
+
+  function drawAll() { drawTeam(); drawCircles(); frameCards(); drawTrace(); select(4); drawTimeline(); }
+  /* Les libellés mesurent le texte : on attend la police manuscrite avant de dessiner */
+  if (document.fonts && document.fonts.ready) { drawTeam(); drawCircles(); frameCards(); drawTrace(); select(4); document.fonts.ready.then(drawAll); }
+  else drawAll();
+  var links = document.querySelectorAll('.nav li a');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + en.target.id); });
+      });
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (sec) { io.observe(sec); });
+  }
+  var rt; window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { frameCards(); drawCircles(); drawTimeline(); }, 150); });
+})();
+</script>
+
+</body>
+</html>
